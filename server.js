@@ -9,17 +9,16 @@ const htmlRoutes = require('./routes/htmlRoutes');
 const app = express();
 
 // Set PORT
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3005;
 
 app.use(express.urlencoded({ extended: true }));
-
 app.use(express.json());
-
-
 app.use(express.static('public'));
+
+
 app.use('/api', apiRoutes);
 app.use('/', htmlRoutes);
 
 app.listen(PORT, () => {
-    console.log(`API server is ready on port ${PORT}!`);
+    console.log('Toy train station is running on port 3005!');
 });

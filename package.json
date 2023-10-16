@@ -12,8 +12,6 @@
   "license": "ISC",
   "dependencies": {
     "express": "^4.18.2",
-    "iodash": "^0.0.1-security",
-    "uui": "^1.0.7",
     "uuid": "^9.0.1"
   }
 }
