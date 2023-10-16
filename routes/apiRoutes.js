@@ -1,31 +1,56 @@
-
-const router = require('express').Router();
-
-const dataSTore = require('../db/dataSTore');
-
-
-router.get('/notes', function (req, res) {
-    dataSTore
-        .notesStored()
-        .then(notes => res.json(notes))
-        .catch(err => res.status(500).json(err));
-});
-
-router.post('/notes', (req, res) => {
-    dataSTore
-        .Noteadd(req.body)
-        .then((note) => res.json(note))
-        .catch(err => res.status(500).json(err));
-});
+// Dependecncies
+const util = require('util');
+const fs = require('fs');
 
 
-router.delete('/notes/:id', function (req, res) {
-    dataSTore
-        .deleteNote(req.params.id)
-        .then(() => res.json({ ok: true }))
-        .catch(err => res.status(500).json(err));
-        then(() => res.json({ ok: true }))
-});
+const { v4: uuidv4 } = require('uuid'); // Newest update
 
 
-module.exports = router;
+const readNote = util.promisify(fs.readFile);
+const writeNote = util.promisify(fs.writeFile);
+
+class Save {
+    write(note) {
+        return writeNote('db/db.json', JSON.stringify(note));
+    }
+
+    read() {
+        return readNote('db/db.json', 'utf8');
+    }
+
+    retrieveNotes() {
+        return this.read().then(notes => {
+            let parsedNotes;
+            try {
+                parsedNotes = [].concat(JSON.parse(notes));
+            } catch (err) {
+                parsedNotes = [];
+            }
+            return parsedNotes;
+        });
+    }
+
+    addNote(note) {
+        const { title, text } = note;
+        if (!title || !text) {
+            throw new Error('Both title and text can not be blank');
+        }
+        // Use UUID package to add unique IDs
+        const newNote = { title, text, id: uuidv4() };
+
+        // Retrieve Notes, add the new note, update notes
+        return this.retrieveNotes()
+            .then(notes => [...notes, newNote])
+            .then(updatedNotes => this.write(updatedNotes))
+            .then(() => newNote);
+    }
+
+    // Delete Note function - BONUS
+    deleteNote(id) {
+        return this.retrieveNotes()
+            .then(notes => notes.filter(note => note.id !== id))
+            .then(filteredNotes => this.write(filteredNotes));
+    }
+}
+
+module.exports = new Save();
